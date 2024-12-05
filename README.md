@@ -38,7 +38,9 @@ This script fetches posts from a Bluesky account using the Bluesky API and backs
      uv run streamlit run trends.py
      ```
 
-<img width="922" alt="image" src="https://github.com/user-attachments/assets/3fd207a7-18c3-466f-9a09-32d02252d1d7">
+(I like talking about Python 🐍 😍)
+
+<img width="829" alt="image" src="https://github.com/user-attachments/assets/920043ae-3c70-4cd6-b38d-a8ba5bfde4ba">
 
 ---
 
