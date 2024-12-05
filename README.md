@@ -31,6 +31,13 @@ This script fetches posts from a Bluesky account using the Bluesky API and backs
      uv run python backup_posts.py
      ```
 
+4. **Look at Trends**:
+   - Use `uv` (or `python`) to install extra dependencies and run the second script:
+     ```bash
+     uv sync --group reporting
+     uv run streamlit run trends.py
+     ```
+
 ---
 
 ## Notes
