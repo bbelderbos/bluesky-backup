@@ -1,21 +1,35 @@
-import sys
 from datetime import datetime
+from pathlib import Path
 
 import sqlite_utils
 from atproto import Client
+from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 from decouple import config
 
 API_TOKEN = config("API_TOKEN")
 BLUESKY_HANDLE = config("BLUESKY_HANDLE")
-DB = sqlite_utils.Database("posts.db")
+DB_FILE = "posts.db"
+DB = sqlite_utils.Database(DB_FILE)
+MAX_POSTS_API = 100
+
+client = Client()
+client.login(BLUESKY_HANDLE, API_TOKEN)
 
 
-def _fetch_all_entries(client, handle, limit=100):
+def _fetch_all_entries(
+    *, use_cursor: bool = False, limit: int = MAX_POSTS_API
+) -> list[FeedViewPost]:
     all_entries = []
     cursor = None
 
+    if not use_cursor:
+        data = client.get_author_feed(actor=BLUESKY_HANDLE, limit=limit)
+        return data.feed
+
     while True:
-        data = client.get_author_feed(actor=handle, limit=limit, cursor=cursor)
+        data = client.get_author_feed(
+            actor=BLUESKY_HANDLE, limit=MAX_POSTS_API, cursor=cursor
+        )
         entries = data.feed
         all_entries.extend(entries)
 
@@ -26,11 +40,15 @@ def _fetch_all_entries(client, handle, limit=100):
     return all_entries
 
 
-def insert_new_posts(handle, token=API_TOKEN):
-    client = Client()
-    client.login(handle, token)
+def _own_post(entry: FeedViewPost) -> bool:
+    return entry.post.record.reply is None and entry.post.viewer.repost is None
 
-    entries = _fetch_all_entries(client, handle)
+
+def insert_new_posts() -> None:
+    """Upsert posts into sqlite db, if first time retrieve all posts"""
+    first_run = not Path(DB_FILE).exists()
+    entries = _fetch_all_entries(use_cursor=first_run)
+
     rows = [
         {
             "id": entry.post.cid,
@@ -40,13 +58,14 @@ def insert_new_posts(handle, token=API_TOKEN):
             ),
         }
         for entry in entries
-        # Skip replies and reposts
-        if entry.post.record.reply is None and entry.post.viewer.repost is None
+        if _own_post(entry)
     ]
 
-    DB[handle].upsert_all(rows, pk="id")
+    table = DB[BLUESKY_HANDLE]
+    # extra check for mypy
+    assert isinstance(table, sqlite_utils.db.Table), f"{BLUESKY_HANDLE} is not a Table"
+    table.upsert_all(rows, pk="id")
 
 
 if __name__ == "__main__":
-    handle = sys.argv[1] if len(sys.argv) == 2 else BLUESKY_HANDLE
-    insert_new_posts(handle)
+    insert_new_posts()
