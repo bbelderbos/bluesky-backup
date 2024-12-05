@@ -5,6 +5,7 @@ import sqlite_utils
 from atproto import Client
 from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 from decouple import config
+from sqlite_utils.db import Table
 
 API_TOKEN = config("API_TOKEN")
 BLUESKY_HANDLE = config("BLUESKY_HANDLE")
@@ -48,6 +49,10 @@ def _is_new_db() -> bool:
     return not Path(DB_FILE).exists() or Path(DB_FILE).stat().st_size == 0
 
 
+def _get_all_ids(table: Table) -> set[str]:
+    return {row["id"] for row in table.rows}
+
+
 def insert_new_posts() -> None:
     """Upsert posts into sqlite db, if first time retrieve all posts"""
     entries = _fetch_all_entries(use_cursor=_is_new_db())
@@ -67,7 +72,16 @@ def insert_new_posts() -> None:
     table = DB[BLUESKY_HANDLE]
     # extra check for mypy
     assert isinstance(table, sqlite_utils.db.Table), f"{BLUESKY_HANDLE} is not a Table"
+
+    existing_ids = _get_all_ids(table)
     table.upsert_all(rows, pk="id")
+    current_ids = _get_all_ids(table)
+
+    new_ids = current_ids - existing_ids
+    if new_ids:
+        print(f"New posts upserted: {len(new_ids)}")
+    else:
+        print("No new posts were upserted.")
 
 
 if __name__ == "__main__":
