@@ -1,20 +1,24 @@
-# README: Bluesky Backup Script
+# Bluesky Backup Script
 
 ## Overview
 
-This script fetches posts from a Bluesky account using the Bluesky API and backs them up into a SQLite database. It avoids duplicates and fetches all posts on the first run, then retrieves only new posts on subsequent runs.
+The `backup_posts.py` script fetches posts from a Bluesky account using the Bluesky API and backs them up into a SQLite database. 
+
+It avoids duplicates and fetches all posts on the first run, then retrieves only new posts on subsequent runs.
+
+There is also a `trends.py` script to show some basic stats about daily usage and tags.
 
 ---
 
 ## Setup
 
-1. **Set Up the Virtual Environment**:
+1. **Run the project with uv**:
    - Run the following command to create a virtual environment and install dependencies:
      ```bash
      uv sync
      ```
 
-2. **Environment Variables**:
+2. **Set environment variables**:
    - Copy `.env-template` to `.env`:
      ```bash
      cp .env-template .env
@@ -25,20 +29,22 @@ This script fetches posts from a Bluesky account using the Bluesky API and backs
      BLUESKY_HANDLE=<Your Bluesky Handle>
      ```
 
-3. **Run the Script**:
+3. **Make a backup**:
    - Use `uv` (or `python`) to run the script:
      ```bash
      uv run python backup_posts.py
      ```
+     
+This repo includes a [GitHub Action](https://github.com/bbelderbos/bluesky-backup/blob/main/.github/workflows/backup.yaml) to run this automatically every day.
 
 4. **Look at Trends**:
-   - Use `uv` (or `python`) to install extra dependencies and run the second script:
+   - Use `uv` (or `python`) to install extra dependencies and run the trends script which uses Streamlit:
      ```bash
      uv sync --group reporting
      uv run streamlit run trends.py
      ```
 
-(I like talking about Python 🐍 😍)
+(I clearly like talking about Python 🐍 😍)
 
 <img width="829" alt="image" src="https://github.com/user-attachments/assets/920043ae-3c70-4cd6-b38d-a8ba5bfde4ba">
 
@@ -51,11 +57,10 @@ This script fetches posts from a Bluesky account using the Bluesky API and backs
   - This may take longer depending on the total number of posts.
 - On subsequent runs:
   - Only new posts (up to 100, the API's limit) will be retrieved.
-- I kept it simple for starters, so this does not include replies to posts (including your own), reposts, likes (stats) and media file links. More than happy to receive contributions to add these features!
-- The database structure is automatically created on the first run.
-- I included a GitHub Action to run this automatically every day.
+- I kept it simple for starters, so this does not include replies to posts (including your own), reposts, likes (stats) and media file links. More than happy to receive contributions to make this better ...
+- The DB + its structure is automatically created on the first run.
 - Original idea: [Mastodon Backup Script](https://github.com/bbelderbos/mastodon-backup).
 
 ---
 
-There you go, now you'll have an automated backup of your Bluesky posts! 🚀
+There you go, now you can have an automated backup of your Bluesky posts! 🚀
