@@ -1,0 +1,34 @@
+name: Backup toots
+on:
+  push:
+  schedule:
+    # At minute 4 past every 4th hour
+    # https://crontab.guru/#4_*/4_*_*_*
+    - cron:  '4 */4 * * *'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.6"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync
+
+      - name: Backup new posts
+        run: uv run python backup_posts.py
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Backup new posts
+          file_pattern: '*.db'
