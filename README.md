@@ -43,6 +43,8 @@ This script fetches posts from a Bluesky account using the Bluesky API and backs
 - I kept it simple for starters, so this does not include replies to posts (including your own), reposts, likes (stats) and media file links. More than happy to receive contributions to add these features!
 - The database structure is automatically created on the first run.
 - I included a GitHub Action to run this automatically every day.
+- Original idea: [Mastodon Backup Script](https://github.com/bbelderbos/mastodon-backup).
+
 ---
 
 There you go, now you'll have an automated backup of your Bluesky posts! 🚀
