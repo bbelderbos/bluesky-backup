@@ -44,10 +44,13 @@ def _own_post(entry: FeedViewPost) -> bool:
     return entry.post.record.reply is None and entry.post.viewer.repost is None
 
 
+def _is_new_db() -> bool:
+    return not Path(DB_FILE).exists() or Path(DB_FILE).stat().st_size == 0
+
+
 def insert_new_posts() -> None:
     """Upsert posts into sqlite db, if first time retrieve all posts"""
-    first_run = not Path(DB_FILE).exists()
-    entries = _fetch_all_entries(use_cursor=first_run)
+    entries = _fetch_all_entries(use_cursor=_is_new_db())
 
     rows = [
         {
